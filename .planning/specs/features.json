@@ -193,6 +193,67 @@
       "title": "Pytest fails if requirement/spec/test traceability becomes incomplete",
       "implementation": ["tests/spec/test_gsd_spec_traceability.py"],
       "tests": ["tests/spec/test_gsd_spec_traceability.py"]
+    },
+    {
+      "id": "GSD-05",
+      "title": "Decision ledger, changelog, and cross-agent rationale docs are maintained",
+      "implementation": [
+        "CHANGELOG.md",
+        "docs/CHANGELOG_DECISOES.md",
+        ".planning/decisions/DECISION_LOG.md",
+        ".codex/skills/gsd-decision-ledger/SKILL.md"
+      ],
+      "tests": ["tests/spec/test_decision_context_governance.py"]
+    },
+    {
+      "id": "API-01",
+      "title": "API-owned reducer applies worker stream events with idempotency and monotonic progression",
+      "implementation": ["services/api/api.py", "services/api/state_store.py", "services/api/broker.py"],
+      "tests": ["tests/unit/test_web_foundation.py"]
+    },
+    {
+      "id": "EVT-01",
+      "title": "Redis stream envelopes and payloads are versioned and schema-validated",
+      "implementation": [
+        "services/api/contracts/events/event-envelope.v1.schema.json",
+        "services/api/contracts/events/dispatch-command.v1.schema.json",
+        "services/api/contracts/events/progress-event.v1.schema.json",
+        "services/api/contracts/events/result-event.v1.schema.json",
+        "services/worker/contracts/events/event-envelope.v1.schema.json",
+        "services/worker/contracts/events/dispatch-command.v1.schema.json",
+        "services/worker/contracts/events/progress-event.v1.schema.json",
+        "services/worker/contracts/events/result-event.v1.schema.json"
+      ],
+      "tests": ["tests/unit/test_event_contract_schemas.py", "tests/unit/test_web_foundation.py"]
+    },
+    {
+      "id": "SVC-01",
+      "title": "Service isolation boundaries are enforced and fail CI on forbidden imports",
+      "implementation": [
+        "scripts/check_service_boundaries.py",
+        "docs/architecture/service-isolation-policy.md",
+        ".github/workflows/ci.yml"
+      ],
+      "tests": ["tests/unit/test_service_boundary_checker.py", "tests/spec/test_gsd_spec_traceability.py"]
+    },
+    {
+      "id": "OPS-01",
+      "title": "CI validates multi-service runtime readiness and quality gates",
+      "implementation": [
+        ".github/workflows/ci.yml",
+        "scripts/run_with_timeout.py",
+        "docker-compose.yml",
+        "services/api/Dockerfile",
+        "services/worker/Dockerfile",
+        "services/frontend/Dockerfile",
+        "requirements-dev.txt",
+        "pyproject.toml"
+      ],
+      "tests": [
+        "tests/spec/test_gsd_spec_traceability.py",
+        "tests/spec/test_decision_context_governance.py",
+        "tests/unit/test_run_with_timeout.py"
+      ]
     }
   ]
 }

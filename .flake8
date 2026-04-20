@@ -2,3 +2,4 @@
 max-line-length = 100
 exclude = .git,__pycache__,.venv,venv*,.cache
 extend-ignore = E203
+jobs = 1

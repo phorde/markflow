@@ -66,7 +66,7 @@ line-length = 100
 target-version = ["py310"]
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers --cov=markflow --cov-report=term-missing --cov-report=xml"
+addopts = "--strict-markers -p no:cacheprovider --basetemp=test-tmp --cov=markflow --cov-report=term-missing --cov-report=xml"
 markers = [
   "unit: fast isolated tests",
   "integration: multi-component tests",

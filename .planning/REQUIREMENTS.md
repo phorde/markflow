@@ -54,6 +54,14 @@
 - [x] **GSD-02**: GSD planning artifacts exist under `.planning/`.
 - [x] **GSD-03**: Every v1 requirement has a machine-readable spec entry with implementation and test references.
 - [x] **GSD-04**: Pytest fails if requirement/spec/test traceability becomes incomplete.
+- [x] **GSD-05**: Decision ledger, changelog, and cross-agent rationale docs are maintained as first-class artifacts.
+
+### Service Runtime and Contracts
+
+- [x] **API-01**: API-owned canonical reducer applies worker stream events with idempotency and monotonic page-state progression.
+- [x] **EVT-01**: Redis Streams envelopes and event payloads are versioned (`v1`) and schema-validated in tests.
+- [x] **SVC-01**: Service isolation boundaries are enforced by deterministic checks and fail CI on forbidden imports.
+- [x] **OPS-01**: CI validates multi-service runtime readiness (dependency install, frontend build, service checks, coverage gate).
 
 ## v2 Requirements
 
@@ -68,7 +76,7 @@
 |---------|--------|
 | Live network LLM calls in normal test gates | Non-deterministic, credential-dependent, and expensive. |
 | Real OCR binary execution in CI | Depends on native binaries and host image details. |
-| Shipping a hosted web UI | Current product is CLI/TUI/library oriented. |
+| Production secret management backends (Vault/KMS) | Current baseline uses environment-driven secret provisioning. |
 
 ## Traceability
 
@@ -106,12 +114,17 @@
 | GSD-02 | Phase 1 | Complete |
 | GSD-03 | Phase 1 | Complete |
 | GSD-04 | Phase 1 | Complete |
+| GSD-05 | Phase 6 | Complete |
+| API-01 | Phase 6 | Complete |
+| EVT-01 | Phase 6 | Complete |
+| SVC-01 | Phase 6 | Complete |
+| OPS-01 | Phase 6 | Complete |
 
 **Coverage:**
-- v1 requirements: 32 total
-- Mapped to phases: 32
+- v1 requirements: 37 total
+- Mapped to phases: 37
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-19*
-*Last updated: 2026-04-19 after GSD migration.*
+*Last updated: 2026-04-20 after service architecture hardening and governance updates.*

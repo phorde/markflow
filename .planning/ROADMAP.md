@@ -126,3 +126,33 @@
 - Exclusions must not replace tests for public behavior.
 - Contract tests must still cover the behavior around excluded adapters.
 - CI enforces `python -m coverage report --fail-under=100`.
+
+## Phase 6: Service Runtime Hardening and Governance
+
+**Status:** Complete
+**Goal:** Make the repository production-ready for multi-service operation while preserving strict GSD traceability and cross-agent continuity.
+
+### Scope
+
+- Establish and validate service runtime boundaries (`frontend`, `api`, `worker`) with deterministic CI checks.
+- Version Redis event contracts and assert schema validity in automated tests.
+- Harden API reducer semantics for idempotent ACK flow and monotonic state evolution.
+- Upgrade and pin dependencies to resolve known security and compatibility issues.
+- Add CI jobs for service-boundary validation, service-runtime checks, and frontend build verification.
+- Add governance artifacts: project changelog, decision changelog/rationale, decision ledger, and dedicated decision-ledger skill.
+
+### Exit Criteria
+
+- Boundary checker passes locally and in CI.
+- Service contract schema tests and web foundation tests pass.
+- Dependency audits (`pip_audit`, `npm audit`) report no known vulnerabilities for pinned manifests.
+- GSD specs, acceptance matrix, and requirements remain in sync and verified by `pytest -m spec`.
+- Decision context is documented for cross-agent handoff (Codex, Claude, Gemini, Copilot).
+
+### Result
+
+- API/worker/frontend structure is enforced by policy and automated checks.
+- Event envelopes/contracts are documented and validated as versioned artifacts.
+- CI pipeline now validates service boundaries, runtime build checks, and full quality gates.
+- Security and packaging hardening completed (including dependency pinning and editable-install package discovery fixes).
+- Governance package added: `CHANGELOG.md`, `docs/CHANGELOG_DECISOES.md`, `.planning/decisions/DECISION_LOG.md`, and `.codex/skills/gsd-decision-ledger/`.

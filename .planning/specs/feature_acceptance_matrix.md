@@ -294,3 +294,46 @@ Acceptance Criteria:
 - The spec suite is part of the normal CI workflow.
 Test Evidence:
 - `tests/spec/test_gsd_spec_traceability.py`
+
+### GSD-05
+Acceptance Criteria:
+- Project-level changelog is maintained with dated, auditable entries.
+- Decision rationale is captured in a dedicated cross-agent document.
+- A reusable skill exists to append and maintain the decision ledger.
+Test Evidence:
+- `tests/spec/test_decision_context_governance.py`
+
+## Service Runtime and Contracts
+
+### API-01
+Acceptance Criteria:
+- API reducer applies progress/result stream events idempotently by `event_id`.
+- Page/document state transitions are monotonic and do not regress terminal states.
+- API acknowledges stream events only after successful reducer application.
+Test Evidence:
+- `tests/unit/test_web_foundation.py`
+
+### EVT-01
+Acceptance Criteria:
+- Redis stream event envelopes and payloads are versioned (`v1`) and schema-validated.
+- API and worker contracts remain aligned for dispatch/progress/result event types.
+Test Evidence:
+- `tests/unit/test_event_contract_schemas.py`
+- `tests/unit/test_web_foundation.py`
+
+### SVC-01
+Acceptance Criteria:
+- Frontend/API/worker service boundaries are validated by deterministic import-edge checks.
+- Forbidden cross-service imports fail CI.
+Test Evidence:
+- `tests/unit/test_service_boundary_checker.py`
+- `tests/spec/test_gsd_spec_traceability.py`
+
+### OPS-01
+Acceptance Criteria:
+- CI validates service boundary checks, service runtime readiness, and full quality gates.
+- Frontend build and Python quality gates run as part of normal pull-request validation.
+Test Evidence:
+- `tests/spec/test_gsd_spec_traceability.py`
+- `tests/spec/test_decision_context_governance.py`
+- `tests/unit/test_run_with_timeout.py`

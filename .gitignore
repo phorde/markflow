@@ -10,6 +10,12 @@ __pycache__/
 *.pyd
 *.egg-info/
 .pytest_cache/
+pytest-cache-files-*/
+.pytest-tmp/
+test-tmp/
+test-work/
+manual-tmp*/
+.tmp/
 .mypy_cache/
 .ruff_cache/
 .hypothesis/

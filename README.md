@@ -50,6 +50,7 @@
     - [Standards](#standards)
     - [Contributing](#contributing)
   - [GSD Workflow](#gsd-workflow)
+  - [Governance Artifacts](#governance-artifacts)
   - [License](#license)
 
 ## Quick Start
@@ -461,6 +462,13 @@ pytest -m spec -q --no-cov
 ```
 
 That test verifies every v1 requirement has exactly one feature spec, every spec lists implementation and test paths, every acceptance section exists, every referenced test file contains executable tests, every referenced path exists, and every production module under `markflow/` is mapped to at least one feature spec. Use the installed local GSD commands in Codex with `$gsd-help`, `$gsd-progress`, `$gsd-plan-phase`, and `$gsd-verify-work`.
+
+## Governance Artifacts
+
+- Release changelog: [CHANGELOG.md](CHANGELOG.md)
+- Decision rationale changelog: [docs/CHANGELOG_DECISOES.md](docs/CHANGELOG_DECISOES.md)
+- Canonical decision ledger: [.planning/decisions/DECISION_LOG.md](.planning/decisions/DECISION_LOG.md)
+- Decision ledger skill: [.codex/skills/gsd-decision-ledger/SKILL.md](.codex/skills/gsd-decision-ledger/SKILL.md)
 
 ## License
 

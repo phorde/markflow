@@ -9,7 +9,6 @@ import numpy as np
 
 from .review import score_markdown_confidence
 
-
 _DEFAULT_LOCAL_LANGS = ["pt", "en"]
 _EASYOCR_ALLOWED_LANGS = {"pt", "en"}
 _TESSERACT_LANGUAGE_MAP = {

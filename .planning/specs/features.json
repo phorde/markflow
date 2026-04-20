@@ -1,0 +1,198 @@
+{
+  "project": "MarkFlow",
+  "defined": "2026-04-19",
+  "requirements": [
+    {
+      "id": "CLI-01",
+      "title": "Process one PDF file or a directory from CLI",
+      "implementation": ["markflow/cli.py", "markflow/pipeline.py"],
+      "tests": ["tests/unit/test_cli_behavior.py", "tests/integration/test_document_flow.py", "tests/unit/test_pipeline_phase5_coverage.py"]
+    },
+    {
+      "id": "CLI-02",
+      "title": "Execution mode profiles have deterministic effects",
+      "implementation": ["markflow/cli.py"],
+      "tests": ["tests/unit/test_cli_behavior.py"]
+    },
+    {
+      "id": "CLI-03",
+      "title": "CLI inputs normalize into bounded PipelineConfig values",
+      "implementation": ["markflow/cli.py", "markflow/pipeline.py"],
+      "tests": ["tests/unit/test_cli_behavior.py"]
+    },
+    {
+      "id": "CLI-04",
+      "title": "CLI exit codes distinguish success and failure states",
+      "implementation": ["markflow/cli.py"],
+      "tests": ["tests/unit/test_cli_behavior.py", "tests/integration/test_document_flow.py"]
+    },
+    {
+      "id": "PIPE-01",
+      "title": "Text-layer extraction is detected, normalized, scored, and emitted",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/page_analysis.py"],
+      "tests": ["tests/unit/test_pipeline_core.py", "tests/unit/test_extraction_submodules.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "PIPE-02",
+      "title": "Local OCR supports heterogeneous engine result formats and normalized confidence",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/local_ocr.py"],
+      "tests": ["tests/unit/test_pipeline_core.py", "tests/unit/test_pipeline_review_and_ocr_helpers.py", "tests/unit/test_extraction_submodules.py", "tests/unit/test_pipeline_phase5_coverage.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "PIPE-03",
+      "title": "Remote OCR routes through provider-agnostic model selection and fallback models",
+      "implementation": ["markflow/pipeline.py", "markflow/routing.py", "markflow/model_selection.py"],
+      "tests": ["tests/unit/test_pipeline_review_and_ocr_helpers.py", "tests/unit/test_selection_routing_additional.py", "tests/unit/test_llm_and_selection.py", "tests/unit/test_pipeline_phase5_coverage.py"]
+    },
+    {
+      "id": "PIPE-04",
+      "title": "Visual QA and NLP cleanup follow thresholds and warning rules",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/review.py"],
+      "tests": ["tests/unit/test_pipeline_core.py", "tests/unit/test_pipeline_review_and_ocr_helpers.py", "tests/unit/test_extraction_submodules.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "PIPE-05",
+      "title": "medical_strict fails closed for low confidence or missing review",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/review.py", "markflow/extraction/reporting.py"],
+      "tests": ["tests/unit/test_pipeline_review_and_ocr_helpers.py", "tests/unit/test_reporting_decision_matrix.py", "tests/integration/test_document_flow.py", "tests/unit/test_pipeline_phase5_coverage.py"]
+    },
+    {
+      "id": "PIPE-06",
+      "title": "Reports expose deterministic page and document status metadata",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/reporting.py", "markflow/extraction/types.py"],
+      "tests": ["tests/unit/test_extraction_modules.py", "tests/unit/test_reporting_decision_matrix.py", "tests/integration/test_document_flow.py", "tests/unit/test_pipeline_phase5_coverage.py"]
+    },
+    {
+      "id": "PIPE-07",
+      "title": "HTML output is sanitized against active content",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/rendering.py"],
+      "tests": ["tests/unit/test_pipeline_core.py", "tests/unit/test_extraction_submodules.py", "tests/functional/test_end_to_end.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "PIPE-08",
+      "title": "Cache entries are versioned, TTL-aware, and disabled for strict sensitive mode by default",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/cache.py", "markflow/extraction/orchestrator.py"],
+      "tests": ["tests/unit/test_extraction_modules.py", "tests/unit/test_pipeline_core.py", "tests/integration/test_document_flow.py", "tests/unit/test_pipeline_phase5_coverage.py"]
+    },
+    {
+      "id": "PIPE-09",
+      "title": "CPU-bound rendering and local OCR work do not block the event loop",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/orchestrator.py"],
+      "tests": ["tests/unit/test_pipeline_async_behavior.py", "tests/unit/test_extraction_modules.py", "tests/unit/test_pipeline_phase5_coverage.py"]
+    },
+    {
+      "id": "LLM-01",
+      "title": "OpenAI-compatible clients reject insecure remote base URLs",
+      "implementation": ["markflow/llm_client.py"],
+      "tests": ["tests/unit/test_llm_client_additional.py", "tests/unit/test_llm_client_error_paths.py", "tests/unit/test_llm_client_phase5_coverage.py"]
+    },
+    {
+      "id": "LLM-02",
+      "title": "Provider auth headers, endpoint candidates, redirects, and response parsing are normalized",
+      "implementation": ["markflow/llm_client.py", "markflow/provider_presets.py"],
+      "tests": ["tests/unit/test_llm_client_additional.py", "tests/unit/test_llm_client_error_paths.py", "tests/unit/test_llm_and_selection.py", "tests/unit/test_llm_client_phase5_coverage.py"]
+    },
+    {
+      "id": "LLM-03",
+      "title": "Model discovery normalizes IDs, capabilities, context, and pricing",
+      "implementation": ["markflow/llm_client.py", "markflow/llm_types.py"],
+      "tests": ["tests/unit/test_llm_client_additional.py", "tests/unit/test_llm_and_selection.py", "tests/unit/test_llm_client_phase5_coverage.py"]
+    },
+    {
+      "id": "LLM-04",
+      "title": "OpenAI-compatible and Anthropic APIs normalize text responses",
+      "implementation": ["markflow/llm_client.py", "markflow/llm_types.py"],
+      "tests": ["tests/unit/test_llm_client_additional.py", "tests/unit/test_llm_client_error_paths.py", "tests/unit/test_llm_client_phase5_coverage.py"]
+    },
+    {
+      "id": "LLM-05",
+      "title": "Secrets and token-like values are redacted from errors and reports",
+      "implementation": ["markflow/security.py", "markflow/llm_client.py"],
+      "tests": ["tests/unit/test_security_redaction.py", "tests/unit/test_llm_client_error_paths.py", "tests/unit/test_llm_client_phase5_coverage.py"]
+    },
+    {
+      "id": "SEL-01",
+      "title": "OCR benchmark ingestion handles valid, partial, and invalid payloads safely",
+      "implementation": ["markflow/benchmark_ingestion.py"],
+      "tests": ["tests/unit/test_benchmark_ingestion_additional.py", "tests/unit/test_llm_and_selection.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "SEL-02",
+      "title": "OCR-aware model ranking is deterministic for equivalent inputs",
+      "implementation": ["markflow/model_selection.py"],
+      "tests": ["tests/unit/test_selection_routing_additional.py", "tests/unit/test_llm_and_selection.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "SEL-03",
+      "title": "Task-aware routing selects model candidates by task, complexity, benchmark signal, and vision needs",
+      "implementation": ["markflow/routing.py", "markflow/model_selection.py"],
+      "tests": ["tests/unit/test_selection_routing_additional.py", "tests/unit/test_llm_and_selection.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "TUI-01",
+      "title": "Interactive setup applies provider presets, discovery, and recommendations to CLI args",
+      "implementation": ["markflow/tui.py"],
+      "tests": ["tests/unit/test_tui_setup_flow.py", "tests/unit/test_tui_helpers.py", "tests/unit/test_tui_phase5_coverage.py"]
+    },
+    {
+      "id": "TUI-02",
+      "title": "TUI helper behavior is testable without an interactive terminal",
+      "implementation": ["markflow/tui.py"],
+      "tests": ["tests/unit/test_tui_helpers.py", "tests/unit/test_tui_setup_flow.py", "tests/unit/test_tui_phase5_coverage.py"]
+    },
+    {
+      "id": "SEC-01",
+      "title": "Sanitized HTML preserves legitimate Markdown tables and headings",
+      "implementation": ["markflow/extraction/rendering.py", "markflow/pipeline.py"],
+      "tests": ["tests/unit/test_pipeline_core.py", "tests/unit/test_extraction_submodules.py", "tests/functional/test_end_to_end.py", "tests/unit/test_coverage_phase5_small_modules.py"]
+    },
+    {
+      "id": "SEC-02",
+      "title": "Strict regulated workflows never persist sensitive cache artifacts unless opted in",
+      "implementation": ["markflow/pipeline.py", "markflow/extraction/orchestrator.py"],
+      "tests": ["tests/integration/test_document_flow.py", "tests/unit/test_extraction_modules.py"]
+    },
+    {
+      "id": "SEC-03",
+      "title": "Security redaction is property-tested against secret leakage",
+      "implementation": ["markflow/security.py"],
+      "tests": ["tests/unit/test_security_redaction.py"]
+    },
+    {
+      "id": "QA-01",
+      "title": "Unit, integration, functional, and spec test suites are discoverable by pytest markers",
+      "implementation": ["pyproject.toml"],
+      "tests": ["tests/spec/test_gsd_spec_traceability.py", "tests/unit/test_coverage_phase5_remaining_small.py", "tests/unit/test_pipeline_phase5_runtime_adapters.py"]
+    },
+    {
+      "id": "QA-02",
+      "title": "CI runs compile, lint, format, typecheck, unit, integration, functional, and coverage gates",
+      "implementation": [".github/workflows/ci.yml"],
+      "tests": ["tests/spec/test_gsd_spec_traceability.py"]
+    },
+    {
+      "id": "GSD-01",
+      "title": "GSD is installed locally for Codex",
+      "implementation": [".codex/config.toml", ".codex/gsd-file-manifest.json"],
+      "tests": ["tests/spec/test_gsd_spec_traceability.py"]
+    },
+    {
+      "id": "GSD-02",
+      "title": "GSD planning artifacts exist under .planning",
+      "implementation": [".planning/PROJECT.md", ".planning/REQUIREMENTS.md", ".planning/ROADMAP.md", ".planning/STATE.md"],
+      "tests": ["tests/spec/test_gsd_spec_traceability.py"]
+    },
+    {
+      "id": "GSD-03",
+      "title": "Every v1 requirement has a machine-readable spec entry with implementation and test references",
+      "implementation": [".planning/specs/features.json"],
+      "tests": ["tests/spec/test_gsd_spec_traceability.py"]
+    },
+    {
+      "id": "GSD-04",
+      "title": "Pytest fails if requirement/spec/test traceability becomes incomplete",
+      "implementation": ["tests/spec/test_gsd_spec_traceability.py"],
+      "tests": ["tests/spec/test_gsd_spec_traceability.py"]
+    }
+  ]
+}

@@ -12,7 +12,10 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 .coverage
+coverage.json
+coverage.xml
 htmlcov/
 build/
 dist/
@@ -40,6 +43,13 @@ Thumbs.db
 *.log
 .cache/
 out/
+
+# Frontend/build outputs
+services/frontend/.next/
+services/frontend/node_modules/
+services/frontend/out/
+services/frontend/.turbo/
+services/frontend/coverage/
 
 # OS-specific
 .AppleDouble

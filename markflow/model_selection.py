@@ -225,9 +225,12 @@ def select_best_model(
     reasons = [
         f"Selected '{selected_model.id}' with OCR-first weighted score {best_score:.3f}.",
         (
-            f"Benchmark evidence matched {coverage} signal(s) across OCRBench sources."
+            (f"Benchmark evidence matched {coverage} signal(s) across OCRBench " "sources.")
             if coverage > 0
-            else "No direct benchmark match; selection used metadata heuristics and normalization fallback."
+            else (
+                "No direct benchmark match; selection used metadata heuristics "
+                "and normalization fallback."
+            )
         ),
         (
             f"OCR/structured/context components: {component_scores['ocr']:.3f} / "
@@ -238,7 +241,8 @@ def select_best_model(
 
     if vision_requirement_degraded:
         reasons.append(
-            "Provider did not expose explicit vision capability flags; ranking used benchmark/name heuristics for chat-capable models."
+            "Provider did not expose explicit vision capability flags; "
+            "ranking used benchmark/name heuristics for chat-capable models."
         )
 
     tradeoffs = [

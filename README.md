@@ -16,21 +16,41 @@
 
 ## Table of Contents
 
-- [Quick Start](#quick-start)
-- [OCR-First Philosophy](#ocr-first-philosophy)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-  - [CLI](#cli)
-  - [Interactive Mode (TUI)](#interactive-mode-tui)
-  - [Execution Modes](#execution-modes)
-  - [Routing Modes](#routing-modes)
-- [Benchmark-Driven Model Selection](#benchmark-driven-model-selection)
-- [Output Formats](#output-formats)
-- [Security](#security)
-- [Development](#development)
-- [License](#license)
+- [MarkFlow](#markflow)
+  - [Key Features](#key-features)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+  - [OCR-First Philosophy](#ocr-first-philosophy)
+  - [Architecture](#architecture)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Windows (PowerShell)](#windows-powershell)
+    - [Linux / macOS](#linux--macos)
+  - [Configuration](#configuration)
+    - [Core Settings](#core-settings)
+    - [Provider-Specific Keys](#provider-specific-keys)
+    - [Optional Settings](#optional-settings)
+  - [Usage](#usage)
+    - [CLI](#cli)
+    - [Web UI](#web-ui)
+    - [Interactive Mode (TUI)](#interactive-mode-tui)
+    - [Execution Modes](#execution-modes)
+    - [Routing Modes](#routing-modes)
+  - [Benchmark-Driven Model Selection](#benchmark-driven-model-selection)
+  - [Output Formats](#output-formats)
+    - [Markdown Output](#markdown-output)
+    - [JSON Report](#json-report)
+  - [Service Isolation Rules](#service-isolation-rules)
+  - [Security](#security)
+    - [API Key Handling](#api-key-handling)
+    - [Important Limitations](#important-limitations)
+  - [Development](#development)
+    - [Setup](#setup)
+    - [Quality Gates](#quality-gates)
+    - [Standards](#standards)
+    - [Contributing](#contributing)
+  - [GSD Workflow](#gsd-workflow)
+  - [License](#license)
 
 ## Quick Start
 
@@ -63,21 +83,19 @@ MarkFlow is optimized for document transcription and OCR-extraction workloads wh
 ## Architecture
 
 ```
-app.py                           # Slim entrypoint
+app.py                             # CLI/TUI launcher
+services/
+├── frontend/                      # Frontend runtime/build/deploy assets
+├── api/                           # API runtime/build/deploy assets
+└── worker/                        # Worker runtime/build/deploy assets
 markflow/
-├── cli.py                       # CLI argument parsing and workflow orchestration
-├── pipeline.py                  # Core OCR pipeline and page processing logic
-├── tui.py                       # Interactive terminal UI for setup and recommendations
-├── llm_client.py                # OpenAI-compatible provider abstraction
-├── llm_types.py                 # Shared typed contracts and data structures
-├── benchmark_ingestion.py       # OCR benchmark data ingestion and normalization
-├── model_selection.py           # OCR-aware model ranking and scoring
-├── routing.py                   # Task-aware routing and escalation logic
-└── provider_presets.py          # Provider-specific configuration presets
+├── extraction/                    # OCR/extraction core domain (CLI/core compatibility)
+└── ...                            # Core benchmark/routing/security modules
 ```
 
 **Architectural Separation:**
 
+- **Service Isolation**: frontend, API, and worker are independent runtime/build/deploy units
 - **OCR Core**: Document analysis, confidence scoring, page-level routing
 - **LLM Abstraction**: Provider-agnostic client with async support
 - **Benchmarking**: Canonical OCR benchmark integration and model normalization
@@ -181,6 +199,74 @@ List all available CLI options:
 
 ```bash
 python app.py --help
+```
+
+### Web UI
+
+The browser UI in `services/frontend/` talks to the isolated API service via HTTP/SSE contracts.
+
+Run the backend in one terminal:
+
+```powershell
+uvicorn app:create_app --factory --reload --app-dir services/api
+```
+
+Run the frontend in another terminal:
+
+```powershell
+cd services/frontend
+copy .env.local.example .env.local
+npm install
+npm run dev
+```
+
+Open the UI at:
+
+```text
+http://localhost:3000
+```
+
+Open the API docs at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Local Services (Docker Compose)
+
+Run all services with one command from repository root:
+
+```bash
+docker compose up --build
+```
+
+Services:
+
+- Frontend: `http://127.0.0.1:3000`
+- API: `http://127.0.0.1:8000`
+- Redis: `127.0.0.1:6379`
+- Worker health: `http://127.0.0.1:8001/health`
+
+### Local Services (Independent)
+
+Start API:
+
+```bash
+uvicorn app:create_app --factory --host 0.0.0.0 --port 8000 --app-dir services/api
+```
+
+Start worker loop:
+
+```bash
+python services/worker/entrypoint.py
+```
+
+Start frontend:
+
+```bash
+cd services/frontend
+npm ci
+npm run dev
 ```
 
 ### Interactive Mode (TUI)
@@ -306,6 +392,16 @@ MarkFlow implements strict API key security:
 
 While MarkFlow implements best-effort API key handling, no software can guarantee 100% security under every threat model. Use in secure environments and follow your organization's credential management policies.
 
+## Service Isolation Rules
+
+This repository enforces strict service boundaries for frontend, API, and worker slices.
+
+- Policy: `docs/architecture/service-isolation-policy.md`
+- Event contracts: `docs/architecture/event-contracts.md`
+- HTTP contracts: `services/api/contracts/http/`
+- Machine-readable event schemas: `services/api/contracts/events/` and `services/worker/contracts/events/`
+- Deterministic boundary check command: `python scripts/check_service_boundaries.py`
+
 ## Development
 
 ### Setup
@@ -313,7 +409,7 @@ While MarkFlow implements best-effort API key handling, no software can guarante
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # or .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ### Quality Gates
@@ -321,17 +417,17 @@ pip install -r requirements.txt
 Before submitting a PR, run:
 
 ```bash
-# Syntax validation
-python -m py_compile app.py markflow/*.py
-
-# Code formatting
-python -m black .
-
-# Linting
-python -m flake8 app.py markflow
-
-# Type checking
+python -m compileall -q app.py markflow tests
+python -m ruff check .
+python -m black --check .
+python -m flake8 app.py markflow tests
 python -m mypy markflow
+pytest -m unit -q --no-cov
+pytest -m "integration and not slow" -q --no-cov
+pytest -m functional -q --no-cov
+pytest -m spec -q --no-cov
+pytest -q
+python -m coverage report --fail-under=100
 ```
 
 ### Standards
@@ -345,6 +441,26 @@ python -m mypy markflow
 ### Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development workflow and PR guidelines.
+
+## GSD Workflow
+
+This repository is migrated to the GSD spec-driven workflow for Codex.
+
+- Local GSD runtime: `.codex/`
+- Project context: `.planning/PROJECT.md`
+- Requirements: `.planning/REQUIREMENTS.md`
+- Roadmap/state: `.planning/ROADMAP.md`, `.planning/STATE.md`
+- Codebase map: `.planning/codebase/`
+- Machine-readable feature specs: `.planning/specs/features.json`
+- Acceptance matrix: `.planning/specs/feature_acceptance_matrix.md`
+
+The spec traceability gate is automated:
+
+```bash
+pytest -m spec -q --no-cov
+```
+
+That test verifies every v1 requirement has exactly one feature spec, every spec lists implementation and test paths, every acceptance section exists, every referenced test file contains executable tests, every referenced path exists, and every production module under `markflow/` is mapped to at least one feature spec. Use the installed local GSD commands in Codex with `$gsd-help`, `$gsd-progress`, `$gsd-plan-phase`, and `$gsd-verify-work`.
 
 ## License
 

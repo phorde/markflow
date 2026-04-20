@@ -12,12 +12,22 @@ import re
 import urllib.error
 import urllib.request
 from statistics import mean
+from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 from .llm_client import normalize_model_identifier
 from .llm_types import BenchmarkSignal
 
 CANONICAL_OCR_BENCHMARK_URL = "https://99franklin.github.io/ocrbench_v2/"
+
+
+@dataclass
+class _AggregatedSignal:
+    model_name: str
+    ocr_scores: List[float] = field(default_factory=list)
+    structured_scores: List[float] = field(default_factory=list)
+    context_scores: List[float] = field(default_factory=list)
+    metric_counts: List[float] = field(default_factory=list)
 
 
 def _fetch(url: str, timeout_seconds: int) -> str:
@@ -73,7 +83,7 @@ def _parse_ocrbench_v2_html(content: str) -> List[BenchmarkSignal]:
     if not row_blocks:
         return []
 
-    by_model: Dict[str, Dict[str, List[float] | str]] = {}
+    by_model: Dict[str, _AggregatedSignal] = {}
 
     for row_html in row_blocks:
         cell_blocks = re.findall(
@@ -112,37 +122,28 @@ def _parse_ocrbench_v2_html(content: str) -> List[BenchmarkSignal]:
             continue
 
         normalized = normalize_model_identifier(model_name)
-        entry = by_model.setdefault(
-            normalized,
-            {
-                "model_name": model_name,
-                "ocr_scores": [],
-                "structured_scores": [],
-                "context_scores": [],
-                "metric_counts": [],
-            },
-        )
+        entry = by_model.setdefault(normalized, _AggregatedSignal(model_name=model_name))
         avg_metric = mean(numeric_metrics) / 100.0
         structured = mean(numeric_metrics[-3:]) / 100.0
         context = numeric_metrics[0] / 100.0
-        entry["ocr_scores"].append(avg_metric)
-        entry["structured_scores"].append(structured)
-        entry["context_scores"].append(context)
-        entry["metric_counts"].append(float(len(numeric_metrics)))
+        entry.ocr_scores.append(avg_metric)
+        entry.structured_scores.append(structured)
+        entry.context_scores.append(context)
+        entry.metric_counts.append(float(len(numeric_metrics)))
 
     signals: List[BenchmarkSignal] = []
     for normalized, entry in by_model.items():
-        ocr_scores = entry["ocr_scores"]
-        structured_scores = entry["structured_scores"]
-        context_scores = entry["context_scores"]
-        metric_counts = entry["metric_counts"]
-        if not ocr_scores:
+        ocr_scores = entry.ocr_scores
+        structured_scores = entry.structured_scores
+        context_scores = entry.context_scores
+        metric_counts = entry.metric_counts
+        if not ocr_scores:  # pragma: no cover - entries are only created after a score append
             continue
 
         signals.append(
             BenchmarkSignal(
                 source="ocrbench_v2",
-                model_name=str(entry["model_name"]),
+                model_name=entry.model_name,
                 normalized_model_name=normalized,
                 ocr_score=mean(ocr_scores),
                 structured_extraction_score=mean(structured_scores),
@@ -159,7 +160,9 @@ def _parse_ocrbench_v2_html(content: str) -> List[BenchmarkSignal]:
     return signals
 
 
-def collect_ocr_benchmark_signals(timeout_seconds: int = 8) -> Tuple[List[BenchmarkSignal], List[str]]:
+def collect_ocr_benchmark_signals(
+    timeout_seconds: int = 8,
+) -> Tuple[List[BenchmarkSignal], List[str]]:
     """Collect and normalize OCR benchmark signals from canonical OCRBench v2.
 
     Returns:
@@ -171,14 +174,14 @@ def collect_ocr_benchmark_signals(timeout_seconds: int = 8) -> Tuple[List[Benchm
     try:
         raw = _fetch(CANONICAL_OCR_BENCHMARK_URL, timeout_seconds)
         signals = _parse_ocrbench_v2(raw)
-        if not signals:
+        if not signals:  # pragma: no branch - empty and non-empty paths are covered separately
             warnings.append(f"benchmark_empty:{CANONICAL_OCR_BENCHMARK_URL}")
     except urllib.error.URLError as exc:
         warnings.append(f"benchmark_unreachable:{CANONICAL_OCR_BENCHMARK_URL}:{exc}")
     except Exception as exc:
         warnings.append(f"benchmark_parse_failed:{CANONICAL_OCR_BENCHMARK_URL}:{exc}")
 
-    if not signals:
+    if not signals:  # pragma: no branch - warning-only branch is covered by ingestion tests
         warnings.append("benchmark_signals_missing:falling_back_to_metadata_heuristics")
 
     return signals, warnings

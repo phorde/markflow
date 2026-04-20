@@ -68,6 +68,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--disable-visual-qa", action="store_true")
     parser.add_argument("--disable-nlp-review", action="store_true")
     parser.add_argument("--disable-cache", action="store_true")
+    parser.add_argument(
+        "--allow-sensitive-cache",
+        action="store_true",
+        help="Allow persistent cache artifacts even in medical-strict mode.",
+    )
+    parser.add_argument(
+        "--cache-schema-version",
+        type=int,
+        default=1,
+        help="Cache schema version used to invalidate old cache artifacts.",
+    )
+    parser.add_argument(
+        "--cache-ttl-seconds",
+        type=int,
+        default=0,
+        help="Optional cache TTL in seconds. Set 0 to disable expiration.",
+    )
     parser.add_argument("--no-autotune-local", action="store_true")
     parser.add_argument(
         "--llm-base-url",
@@ -122,7 +139,10 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=["auto", "fast", "quality", "local", "remote"],
         default="auto",
-        help="Execution profile: auto (adaptive), fast (speed), quality (accuracy), local (no remote), remote (remote-first).",
+        help=(
+            "Execution profile: auto (adaptive), fast (speed), quality (accuracy), "
+            "local (no remote), remote (remote-first)."
+        ),
     )
     parser.add_argument(
         "--tui",
@@ -216,6 +236,9 @@ def build_config(args: argparse.Namespace) -> PipelineConfig:
         enable_visual_qa=not args.disable_visual_qa,
         enable_nlp_review=not args.disable_nlp_review,
         cache_enabled=not args.disable_cache,
+        allow_sensitive_cache_persistence=bool(args.allow_sensitive_cache),
+        cache_schema_version=max(1, int(args.cache_schema_version)),
+        cache_ttl_seconds=max(0, int(args.cache_ttl_seconds)),
         llm_enabled=not args.disable_llm,
         llm_api_key="",
         llm_base_url=(args.llm_base_url or "").strip(),
@@ -263,8 +286,12 @@ def main() -> int:
     failed = 0
     for pdf_file in pdfs:
         try:
-            process_document(pdf_file, output_dir, args.suffix, args.html, cfg)
-            ok += 1
+            result = process_document(pdf_file, output_dir, args.suffix, args.html, cfg)
+            if result.success:
+                ok += 1
+            else:
+                print(f"[FAIL] {pdf_file.name}: document status={result.status}")
+                failed += 1
         except Exception as exc:
             print(f"[FAIL] {pdf_file.name}: {exc}")
             failed += 1

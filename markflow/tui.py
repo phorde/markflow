@@ -21,7 +21,6 @@ from .provider_presets import (
     list_provider_preset_keys,
 )
 
-
 _MODE_HELP = {
     "auto": "Adaptive mode with intelligent routing; system decides optimal extraction path.",
     "fast": "Speed-optimized for high-throughput batches; minimal post-processing overhead.",
@@ -32,10 +31,8 @@ _MODE_HELP = {
 
 try:
     import questionary
-    from questionary import Choice
 except Exception:  # pragma: no cover - runtime optional dependency
-    questionary = None
-    Choice = None
+    questionary = None  # type: ignore[assignment]
 
 
 _FALLBACK_HINT_SHOWN = False
@@ -75,7 +72,7 @@ def _select_option(
     """Select one option using arrow-key UI, with Prompt fallback."""
     global _FALLBACK_HINT_SHOWN
     if _can_use_arrow_ui():
-        prompt_choices = [Choice(title=label, value=value) for value, label in options]
+        prompt_choices = [questionary.Choice(title=label, value=value) for value, label in options]
         result = questionary.select(
             f"{title}: {text}",
             choices=prompt_choices,
@@ -88,7 +85,7 @@ def _select_option(
         return default
 
     allowed = [value for value, _ in options]
-    if not _FALLBACK_HINT_SHOWN:
+    if not _FALLBACK_HINT_SHOWN:  # pragma: no branch - global hint state is UX-only
         console.print("[dim]Tip: install/enable full TTY for arrow-key selector UI.[/dim]")
         _FALLBACK_HINT_SHOWN = True
     return Prompt.ask(fallback_label, choices=allowed, default=default)
@@ -136,7 +133,9 @@ def _ask_secret(console: Console, label: str, default: str = "") -> str:
 def _strip_optional_quotes(value: str) -> str:
     """Strip matching surrounding quotes from interactive inputs."""
     text = (value or "").strip()
-    if len(text) >= 2 and ((text[0] == '"' and text[-1] == '"') or (text[0] == "'" and text[-1] == "'")):
+    if len(text) >= 2 and (
+        (text[0] == '"' and text[-1] == '"') or (text[0] == "'" and text[-1] == "'")
+    ):
         return text[1:-1].strip()
     return text
 
@@ -339,7 +338,10 @@ def run_interactive_setup(defaults: Namespace) -> Namespace:
         if should_discover:
             if not llm_api_key.strip():
                 console.print(
-                    "[yellow]API key is empty. Model discovery needs a valid key; skipping discovery.[/yellow]"
+                    (
+                        "[yellow]API key is empty. Model discovery needs a valid "
+                        "key; skipping discovery.[/yellow]"
+                    )
                 )
                 llm_model = _strip_optional_quotes(
                     _ask_text(
@@ -403,7 +405,10 @@ def run_interactive_setup(defaults: Namespace) -> Namespace:
                             )
                     else:
                         console.print(
-                            "[yellow]No OCR-specific recommendation available from model metadata.[/yellow]"
+                            (
+                                "[yellow]No OCR-specific recommendation available "
+                                "from model metadata.[/yellow]"
+                            )
                         )
                         llm_model = _prompt_discovered_model_selection(
                             console=console,
@@ -421,7 +426,8 @@ def run_interactive_setup(defaults: Namespace) -> Namespace:
 
                     if benchmark_warnings:
                         console.print(
-                            "[yellow]Benchmark ingestion notes:[/yellow] " + "; ".join(benchmark_warnings)
+                            "[yellow]Benchmark ingestion notes:[/yellow] "
+                            + "; ".join(benchmark_warnings)
                         )
                 except Exception as exc:
                     console.print(f"[yellow]Model discovery skipped: {exc}[/yellow]")
@@ -458,7 +464,7 @@ def run_interactive_setup(defaults: Namespace) -> Namespace:
     if llm_api_key:
         os.environ["LLM_API_KEY"] = llm_api_key
         provider_env_key = get_provider_preset(llm_provider_preset).api_key_env_var
-        if provider_env_key:
+        if provider_env_key:  # pragma: no branch - custom provider intentionally has no env alias
             os.environ[provider_env_key] = llm_api_key
     defaults.llm_api_key = ""
     defaults.llm_base_url = llm_base_url

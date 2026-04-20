@@ -70,9 +70,14 @@ class OcrAwareRouter:
             fallback_names = ", ".join(model.id for model in selector.fallback_models)
             debug_lines.append(f"fallback_candidates={fallback_names}")
 
-        if complexity == "high" and selector.selected_model is not None and selector.fallback_models:
+        if (
+            complexity == "high"
+            and selector.selected_model is not None
+            and selector.fallback_models
+        ):
             debug_lines.append(
-                "Escalation strategy active: retry with first fallback model on low confidence/failure."
+                "Escalation strategy active: retry with first fallback model on "
+                "low confidence/failure."
             )
 
         return RoutingDecision(

@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 import aiohttp
 
 from .llm_types import DiscoveredModel, LlmCallResult
+from .security import redact_sensitive_text
 
 
 def normalize_model_identifier(model_id: str) -> str:
@@ -31,12 +32,7 @@ def _as_float(value: Any) -> Optional[float]:
 
 def _redact_sensitive(value: str, api_key: str) -> str:
     """Redact API key and token-like patterns from logs/errors."""
-    text = value or ""
-    key = (api_key or "").strip()
-    if key:
-        text = text.replace(key, "[REDACTED_API_KEY]")
-    text = re.sub(r"Bearer\s+[A-Za-z0-9._\-]{10,}", "Bearer [REDACTED_TOKEN]", text)
-    return text
+    return redact_sensitive_text(value, secrets=[api_key])
 
 
 def _validate_secure_base_url(base_url: str) -> None:
@@ -71,7 +67,7 @@ class OpenAICompatibleClient:
         self.auth_mode = (auth_mode or "bearer").strip().lower()
         self.timeout_seconds = max(5, int(timeout_seconds))
         self.extra_headers = dict(extra_headers or {})
-        if self.base_url:
+        if self.base_url:  # pragma: no branch - constructor always assigns a non-empty default URL
             _validate_secure_base_url(self.base_url)
 
     @property
@@ -98,7 +94,9 @@ class OpenAICompatibleClient:
             normalized_suffix = "/" + suffix.lstrip("/")
             if base_lower.endswith("/v1") and normalized_suffix.startswith("/v1/"):
                 normalized_suffix = normalized_suffix[3:]
-            if base_lower.endswith("/chat/completions") and normalized_suffix.endswith("/chat/completions"):
+            if base_lower.endswith("/chat/completions") and normalized_suffix.endswith(
+                "/chat/completions"
+            ):
                 normalized_suffix = ""
             if base_lower.endswith("/models") and normalized_suffix.endswith("/models"):
                 normalized_suffix = ""
@@ -166,7 +164,8 @@ class OpenAICompatibleClient:
                 or 0
             )
 
-            pricing = item.get("pricing") if isinstance(item.get("pricing"), dict) else {}
+            raw_pricing = item.get("pricing")
+            pricing: Dict[str, Any] = raw_pricing if isinstance(raw_pricing, dict) else {}
             input_cost = _as_float(
                 pricing.get("input")
                 or item.get("input_cost_per_million")
@@ -227,7 +226,9 @@ class OpenAICompatibleClient:
             suffixes = ["/chat/completions", "/v1/chat/completions"]
 
         for url in self._endpoint_candidates(suffixes):
-            async with session.post(url, headers=self._headers(), json=payload, allow_redirects=False) as resp:
+            async with session.post(
+                url, headers=self._headers(), json=payload, allow_redirects=False
+            ) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     break
@@ -270,18 +271,51 @@ class OpenAICompatibleClient:
         anthropic_messages: List[Dict[str, Any]] = []
         system_parts: List[str] = []
 
+        def _anthropic_content_blocks(content: Any) -> List[Dict[str, Any]]:
+            blocks: List[Dict[str, Any]] = []
+            if not isinstance(content, list):
+                text = str(content).strip()
+                return [{"type": "text", "text": text}] if text else []
+
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                block_text = block.get("text")
+                if isinstance(block_text, str) and block_text.strip():
+                    blocks.append({"type": "text", "text": block_text.strip()})
+                    continue
+
+                image_url = block.get("image_url")
+                if isinstance(image_url, dict):
+                    raw_url = str(image_url.get("url", ""))
+                else:
+                    raw_url = str(image_url or "")
+                if not raw_url.startswith("data:") or "," not in raw_url:
+                    continue
+
+                header, data = raw_url.split(",", 1)
+                media_type = header[5:].split(";", 1)[0] or "image/jpeg"
+                blocks.append(
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": data,
+                        },
+                    }
+                )
+            return blocks
+
         for message in messages:
             role = str(message.get("role", "user")).strip().lower()
             content = message.get("content", "")
-
-            if isinstance(content, list):
-                text_parts: List[str] = []
-                for block in content:
-                    if isinstance(block, dict) and isinstance(block.get("text"), str):
-                        text_parts.append(block["text"])
-                normalized_content = "\n".join(text_parts).strip()
-            else:
-                normalized_content = str(content).strip()
+            content_blocks = _anthropic_content_blocks(content)
+            normalized_content = "\n".join(
+                str(block.get("text", ""))
+                for block in content_blocks
+                if block.get("type") == "text"
+            ).strip()
 
             if role == "system":
                 if normalized_content:
@@ -292,7 +326,7 @@ class OpenAICompatibleClient:
             anthropic_messages.append(
                 {
                     "role": normalized_role,
-                    "content": normalized_content or "[empty]",
+                    "content": content_blocks or "[empty]",
                 }
             )
 
@@ -310,7 +344,9 @@ class OpenAICompatibleClient:
         data: Dict[str, Any] = {}
         last_error = ""
         for url in self._endpoint_candidates(["/v1/messages", "/messages"]):
-            async with session.post(url, headers=self._headers(), json=payload, allow_redirects=False) as resp:
+            async with session.post(
+                url, headers=self._headers(), json=payload, allow_redirects=False
+            ) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     break

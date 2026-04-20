@@ -12,6 +12,11 @@ This skill updates:
 - `.planning/decisions/DECISION_LOG.md` (canonical ledger)
 - `docs/CHANGELOG_DECISOES.md` (detailed rationale/changelog for humans and agents)
 - `CHANGELOG.md` (release-facing history when decision changes observable behavior)
+
+For cross-agent continuity (Copilot/Codex), this skill also validates references to:
+- `.planning/COPILOT_HANDOFF_PROTOCOL.md`
+- `.planning/copilot-state.md`
+- `docs/INTEGRATION_COPILOT_CODEX.md`
 </objective>
 
 <usage>
@@ -38,6 +43,11 @@ For `append`, always require and persist:
 6. `evidence` (files/tests/commits)
 7. `impact` (expected behavioral or operational effect)
 8. `status` (`active` or `superseded`)
+
+When `agent` is `GitHub Copilot` or `Codex`, include in `evidence`:
+- primary file paths changed
+- validation command(s) or test references
+- checkpoint/handoff artifact reference when applicable
 </required_fields>
 
 <process>
@@ -50,6 +60,7 @@ For `append`, always require and persist:
 4. For `sync`:
    - Ensure every active ledger decision appears in `docs/CHANGELOG_DECISOES.md`.
    - Ensure every release-relevant decision appears in `CHANGELOG.md`.
+   - Ensure Copilot/Codex continuity references are aligned with protocol and runbook docs.
 5. For `audit`:
    - Report missing fields, duplicated decision statements, stale superseded links, and orphaned references.
 6. Preserve existing entries; never rewrite history destructively.

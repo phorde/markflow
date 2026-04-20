@@ -10,6 +10,14 @@ import numpy as np
 from .review import score_markdown_confidence
 
 
+_DEFAULT_LOCAL_LANGS = ["pt", "en"]
+_EASYOCR_ALLOWED_LANGS = {"pt", "en"}
+_TESSERACT_LANGUAGE_MAP = {
+    "pt": "por",
+    "en": "eng",
+}
+
+
 def normalize_ocr_confidence(raw_confidence: Any) -> float:
     """Normalize engine confidence to canonical [0.0, 1.0]."""
     try:
@@ -54,15 +62,17 @@ def local_ocr_language_tokens(lang: str) -> List[str]:
         if normalized and normalized not in normalized_tokens:
             normalized_tokens.append(normalized)
     if not normalized_tokens:
-        return ["pt", "en"]
+        return _DEFAULT_LOCAL_LANGS.copy()
     return normalized_tokens
 
 
 def easyocr_language_list(lang: str) -> List[str]:
     """Return EasyOCR-compatible language list from config string."""
-    language_list = [token for token in local_ocr_language_tokens(lang) if token in {"pt", "en"}]
+    language_list = [
+        token for token in local_ocr_language_tokens(lang) if token in _EASYOCR_ALLOWED_LANGS
+    ]
     if not language_list:
-        return ["pt", "en"]
+        return _DEFAULT_LOCAL_LANGS.copy()
     return language_list
 
 
@@ -70,15 +80,8 @@ def tesseract_language(lang: str) -> str:
     """Convert normalized language tokens to Tesseract code string."""
     tokens = local_ocr_language_tokens(lang)
     if not tokens:  # pragma: no cover - local_ocr_language_tokens always returns defaults
-        tokens = ["pt", "en"]
-    mapped: List[str] = []
-    for token in tokens:
-        if token == "pt":
-            mapped.append("por")
-        elif token == "en":
-            mapped.append("eng")
-        else:
-            mapped.append(token)
+        tokens = _DEFAULT_LOCAL_LANGS.copy()
+    mapped = [_TESSERACT_LANGUAGE_MAP.get(token, token) for token in tokens]
     return "+".join(mapped)
 
 

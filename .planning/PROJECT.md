@@ -63,6 +63,7 @@ Documents must never be reported as safely processed unless extraction status, c
 | Split runtime into API/worker/frontend services | Isolates ownership, improves deployment boundaries, and hardens production posture. | Complete |
 | Version Redis contracts and check service boundaries in CI | Protects cross-service compatibility and import boundaries as code evolves. | Complete |
 | Maintain a cross-agent decision ledger skill | Preserves rationale continuity across Codex/Claude/Gemini/Copilot sessions. | Complete |
+| Formalize Copilot<->Codex handoff artifacts and CI validation | Ensures deterministic cross-agent continuity and prevents integration drift. | Complete |
 
 ---
 *Last updated: 2026-04-20 after production hardening and governance updates.*

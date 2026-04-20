@@ -14,7 +14,13 @@ def test_decision_governance_artifacts_exist() -> None:
     required_paths = [
         "CHANGELOG.md",
         "docs/CHANGELOG_DECISOES.md",
+        "docs/INTEGRATION_COPILOT_CODEX.md",
+        ".github/copilot-instructions.md",
         ".planning/decisions/DECISION_LOG.md",
+        ".planning/COPILOT_HANDOFF_PROTOCOL.md",
+        ".planning/copilot-state.md",
+        ".planning/SKILLS_FOR_COPILOT.md",
+        "AGENTS.md",
         ".codex/skills/gsd-decision-ledger/SKILL.md",
     ]
 
@@ -41,6 +47,17 @@ def test_release_changelog_mentions_governance_additions() -> None:
     text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     assert "Decision Log" in text or "decision" in text.lower()
     assert "gsd-decision-ledger" in text
+
+
+def test_copilot_codex_artifacts_are_cross_referenced() -> None:
+    copilot_instructions = (ROOT / ".github/copilot-instructions.md").read_text(encoding="utf-8")
+    runbook = (ROOT / "docs/INTEGRATION_COPILOT_CODEX.md").read_text(encoding="utf-8")
+    handoff = (ROOT / ".planning/COPILOT_HANDOFF_PROTOCOL.md").read_text(encoding="utf-8")
+
+    assert ".planning/COPILOT_HANDOFF_PROTOCOL.md" in copilot_instructions
+    assert ".planning/copilot-state.md" in copilot_instructions
+    assert "Copilot -> Codex Handoff" in handoff
+    assert "Validation Commands" in runbook
 
 
 def test_ci_enforces_service_runtime_checks() -> None:

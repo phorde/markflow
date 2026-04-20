@@ -10,6 +10,14 @@ All notable changes to this project are documented in this file.
 - Versioned Redis event contract schemas for API and worker services.
 - Deterministic service-boundary checker (`scripts/check_service_boundaries.py`) and CI integration.
 - Frontend production build pipeline with Next.js 16.2.3 and typed API client integration.
+- Copilot/Codex integration governance package:
+- `.github/copilot-instructions.md`
+- `.planning/SKILLS_FOR_COPILOT.md`
+- `.planning/copilot-state.md`
+- `.planning/COPILOT_HANDOFF_PROTOCOL.md`
+- `.planning/CONTEXT_FOR_AGENTS.md`
+- `.planning/AGENT_ROLES.md`
+- `docs/INTEGRATION_COPILOT_CODEX.md`
 - Governance artifacts:
 - `docs/CHANGELOG_DECISOES.md`
 - `.planning/decisions/DECISION_LOG.md`
@@ -22,9 +30,13 @@ All notable changes to this project are documented in this file.
 - Editable-install package discovery now includes both `markflow*` and `services*`.
 - Runtime and dev dependency pins updated for compatibility and security.
 - CI expanded to include service runtime checks, frontend build checks, and boundary enforcement.
+- CI includes Copilot/Codex integration artifact validation prior to test matrix execution.
 - Black CI invocation now uses `--no-cache` and a hard timeout to avoid Windows cache hangs.
 - API stream processing behavior hardened for idempotent ACK and reducer commit semantics.
 - Frontend job tracking improved with terminal-state handling and low-confidence page approval flow.
+- Broker runtime checks now use explicit fail-fast guards instead of assert-based checks in service runtimes.
+- Worker health endpoint now defaults to loopback bind (`127.0.0.1`) with env override support for containerized deployments.
+- Timeout runner resolves executable paths deterministically before process launch and keeps bounded process-tree termination.
 
 ### Fixed
 
@@ -39,6 +51,7 @@ All notable changes to this project are documented in this file.
 - Removed known vulnerable dependency combinations in development/runtime manifests.
 - Enforced explicit safe pins for FastAPI/Starlette test/runtime stack.
 - Preserved fail-closed and redaction guarantees across CLI/core/service paths.
+- Security audit hardening reduced Bandit findings to zero in project runtime sources.
 
 ## [1.0.0] - 2026-04-19
 

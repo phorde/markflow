@@ -164,12 +164,16 @@ def _detect_total_ram_gb() -> float:
         Total RAM in GB when detection succeeds, otherwise 0.0.
     """
     # Try psutil first if available.
+    psutil_total_bytes: float | None = None
     try:
         import psutil  # type: ignore[import-not-found]
 
-        return round(float(psutil.virtual_memory().total) / (1024**3), 2)
+        psutil_total_bytes = float(psutil.virtual_memory().total)
     except Exception:
-        pass
+        psutil_total_bytes = None
+
+    if psutil_total_bytes is not None:
+        return round(psutil_total_bytes / (1024**3), 2)
 
     # Windows fallback without external dependencies.
     if os.name == "nt":  # pragma: no cover - platform-specific fallback; psutil path is primary
@@ -793,10 +797,16 @@ def _ocr_result_items_to_text(
             points: List[Tuple[float, float]] = []
             for point in bbox:
                 if isinstance(point, (list, tuple)) and len(point) >= 2:
+                    x_value: float | None = None
+                    y_value: float | None = None
                     try:
-                        points.append((float(point[0]), float(point[1])))
+                        x_value = float(point[0])
+                        y_value = float(point[1])
                     except Exception:
-                        continue
+                        x_value = None
+                        y_value = None
+                    if x_value is not None and y_value is not None:
+                        points.append((x_value, y_value))
             if points:
                 x_coord = min(point[0] for point in points)
                 y_coord = min(point[1] for point in points)
@@ -1722,6 +1732,7 @@ async def _process_page(  # pragma: no cover - orchestrator behavior covered by 
                 # If confidence is close to threshold, try high-detail remote OCR recovery first.
                 if confidence >= (cfg.min_acceptable_confidence - 0.12) and attempts > 0:
                     for strict_zoom, strict_side, strict_gray in strict_profiles[:attempts]:
+                        strict_text = ""
                         try:
                             strict_image = await asyncio.to_thread(
                                 _get_rendered_page_image_b64,
@@ -1747,6 +1758,8 @@ async def _process_page(  # pragma: no cover - orchestrator behavior covered by 
                             )
                         except Exception as strict_exc:
                             page_warnings.append(f"strict_recovery_failed:{strict_exc}")
+
+                        if not strict_text:
                             continue
 
                         strict_text = _normalize_markdown_document(strict_text)

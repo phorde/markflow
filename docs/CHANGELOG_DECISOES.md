@@ -18,6 +18,12 @@ Este documento registra, com racional tecnico, as decisoes estruturais e operaci
 - Decisao: estruturar o monorepo com `services/frontend`, `services/api` e `services/worker`.
 - Justificativa: separar ownership de runtime/build/deploy por dominio operacional.
 - Impacto: base para isolamento de servicos, contratos formais e evolucao independente de componentes.
+- Decisao: formalizar continuidade operacional Copilot<->Codex com artefatos canônicos de instrucoes, checkpoint, handoff e runbook.
+- Justificativa: reduzir perda de contexto entre agentes e tornar a transicao auditavel/deterministica.
+- Impacto: adicionados `.github/copilot-instructions.md`, `.planning/COPILOT_HANDOFF_PROTOCOL.md`, `.planning/copilot-state.md`, `.planning/SKILLS_FOR_COPILOT.md`, `.planning/CONTEXT_FOR_AGENTS.md`, `.planning/AGENT_ROLES.md`, `docs/INTEGRATION_COPILOT_CODEX.md` e gate de validacao em CI.
+- Decisao: endurecer runtime de seguranca apos auditoria (guards explicitos no broker, defaults mais seguros de bind e controle deterministico de subprocessos com timeout).
+- Justificativa: reduzir superficie de risco em operacao local/CI sem quebrar contratos de servico e mantendo comportamento deterministico.
+- Impacto: `services/api/broker.py` e `services/worker/broker.py` migraram de `assert` para guardas de runtime; `services/worker/entrypoint.py` passou a bind padrao em `127.0.0.1`; `scripts/run_with_timeout.py` ganhou resolucao de executavel e terminacao robusta de arvore de processos; varredura Bandit ficou sem achados.
 
 ### Carver (subagente)
 

@@ -5,7 +5,8 @@ from __future__ import annotations
 import argparse
 import os
 import signal
-import subprocess
+import shutil
+import subprocess  # nosec B404
 import sys
 
 
@@ -21,16 +22,34 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+def resolve_command_executable(command: list[str]) -> list[str]:
+    """Resolve command executable to absolute path when discoverable."""
+    if not command:
+        return command
+
+    executable = command[0]
+    if os.path.isabs(executable):
+        return command
+
+    resolved = shutil.which(executable)
+    if not resolved:
+        return command
+    return [resolved, *command[1:]]
+
+
 def main() -> int:
     args = parse_args()
-    command = [str(part) for part in args.command]
+    command = resolve_command_executable([str(part) for part in args.command])
     if os.name == "nt":
-        process: subprocess.Popen[bytes] = subprocess.Popen(
+        process: subprocess.Popen[bytes] = subprocess.Popen(  # nosec B603
             command,
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
         )
     else:
-        process = subprocess.Popen(command, start_new_session=True)
+        process = subprocess.Popen(  # nosec B603
+            command,
+            start_new_session=True,
+        )
 
     try:
         return int(process.wait(timeout=args.timeout_seconds))
@@ -47,15 +66,23 @@ def main() -> int:
 def terminate_process_tree(process: subprocess.Popen[bytes]) -> None:
     """Terminate the process tree so timed-out child commands cannot linger."""
     if os.name == "nt":
+        taskkill = shutil.which("taskkill")
+        if not taskkill:
+            system_root = os.environ.get("SystemRoot", r"C:\Windows")
+            taskkill = os.path.join(system_root, "System32", "taskkill.exe")
         subprocess.run(
-            ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+            [taskkill, "/F", "/T", "/PID", str(process.pid)],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             check=False,
-        )
+        )  # nosec B603
         if process.poll() is None:
             process.kill()
-        process.wait(timeout=5)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:  # pragma: no cover - rare OS-level race
+            process.kill()
+            process.wait(timeout=5)
         return
 
     try:

@@ -97,12 +97,18 @@ class RedisStreamsBroker:
         await self._redis.aclose()
         self._redis = None
 
+    def _redis_client(self) -> Any:
+        """Return initialized Redis client after connect lifecycle."""
+        if self._redis is None:  # pragma: no cover - defensive after connect()
+            raise RuntimeError("redis_client_uninitialized")
+        return self._redis
+
     async def ensure_group(self, stream: str, group: str) -> None:
         """Create consumer group if missing."""
         await self.connect()
-        assert self._redis is not None
+        redis = self._redis_client()
         try:
-            await self._redis.xgroup_create(name=stream, groupname=group, id="0", mkstream=True)
+            await redis.xgroup_create(name=stream, groupname=group, id="0", mkstream=True)
         except Exception as exc:  # pragma: no cover - branch varies by redis server error text
             if "BUSYGROUP" not in str(exc):
                 raise
@@ -137,9 +143,9 @@ class RedisStreamsBroker:
     async def publish_envelope(self, stream: str, envelope: dict[str, Any]) -> str:
         """Publish a pre-built envelope to a stream and return message id."""
         await self.connect()
-        assert self._redis is not None
+        redis = self._redis_client()
         payload = json.dumps(envelope, separators=(",", ":"))
-        message_id = await self._redis.xadd(
+        message_id = await redis.xadd(
             name=stream,
             fields={EVENT_FIELD: payload},
             maxlen=self._stream_maxlen,
@@ -176,9 +182,9 @@ class RedisStreamsBroker:
     ) -> list[ConsumedEvent]:
         """Read events from a consumer group for one or more streams."""
         await self.connect()
-        assert self._redis is not None
+        redis = self._redis_client()
         stream_map: dict[Any, Any] = {stream: ">" for stream in streams}
-        reply = await self._redis.xreadgroup(
+        reply = await redis.xreadgroup(
             groupname=group,
             consumername=consumer,
             streams=stream_map,
@@ -204,8 +210,8 @@ class RedisStreamsBroker:
     async def ack(self, *, stream: str, group: str, message_id: str) -> None:
         """Ack a processed message id."""
         await self.connect()
-        assert self._redis is not None
-        await self._redis.xack(stream, group, message_id)
+        redis = self._redis_client()
+        await redis.xack(stream, group, message_id)
 
 
 class RedisDispatchPublisher:

@@ -5,6 +5,66 @@ on:
   pull_request:
 
 jobs:
+  copilot-codex-integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Copilot and Codex integration artifacts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          required_files = {
+            '.github/copilot-instructions.md': [
+              'Project Overview',
+              'Constraints',
+              'Handoff Protocol',
+            ],
+            '.planning/SKILLS_FOR_COPILOT.md': [
+              'Full Support',
+              'Partial Support',
+            ],
+            '.planning/copilot-state.md': [
+              'Copilot Session Checkpoint',
+              'Current Phase',
+            ],
+            '.planning/COPILOT_HANDOFF_PROTOCOL.md': [
+              'Copilot -> Codex Handoff',
+              'Codex -> Copilot Resume',
+            ],
+            '.planning/CONTEXT_FOR_AGENTS.md': [
+              'Hard Constraints',
+              'Handoff Artifacts',
+            ],
+            '.planning/AGENT_ROLES.md': [
+              'GitHub Copilot',
+              'Codex',
+            ],
+            'docs/INTEGRATION_COPILOT_CODEX.md': [
+              'Startup Checklist',
+              'Validation Commands',
+            ],
+          }
+
+          for rel, required_markers in required_files.items():
+            path = root / rel
+            if not path.exists():
+              raise SystemExit(f'Missing required integration file: {rel}')
+            text = path.read_text(encoding='utf-8')
+            for marker in required_markers:
+              if marker not in text:
+                raise SystemExit(f'Missing marker {marker!r} in {rel}')
+
+          print('Copilot/Codex integration artifacts validated.')
+          PY
+
   service-boundaries:
     runs-on: ubuntu-latest
 
@@ -56,7 +116,7 @@ jobs:
         run: docker compose -f docker-compose.yml config -q
 
   test:
-    needs: [service-boundaries, service-runtime-checks]
+    needs: [copilot-codex-integration, service-boundaries, service-runtime-checks]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

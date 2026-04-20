@@ -50,6 +50,7 @@
     - [Standards](#standards)
     - [Contributing](#contributing)
   - [GSD Workflow](#gsd-workflow)
+  - [Copilot and Codex Integration](#copilot-and-codex-integration)
   - [Governance Artifacts](#governance-artifacts)
   - [License](#license)
 
@@ -462,6 +463,24 @@ pytest -m spec -q --no-cov
 ```
 
 That test verifies every v1 requirement has exactly one feature spec, every spec lists implementation and test paths, every acceptance section exists, every referenced test file contains executable tests, every referenced path exists, and every production module under `markflow/` is mapped to at least one feature spec. Use the installed local GSD commands in Codex with `$gsd-help`, `$gsd-progress`, `$gsd-plan-phase`, and `$gsd-verify-work`.
+
+## Copilot and Codex Integration
+
+MarkFlow supports deterministic cross-agent continuity between GitHub Copilot and Codex.
+
+- Copilot instructions: [.github/copilot-instructions.md](.github/copilot-instructions.md)
+- Skill mapping and fallback matrix: [.planning/SKILLS_FOR_COPILOT.md](.planning/SKILLS_FOR_COPILOT.md)
+- Session checkpoint template: [.planning/copilot-state.md](.planning/copilot-state.md)
+- Handoff protocol: [.planning/COPILOT_HANDOFF_PROTOCOL.md](.planning/COPILOT_HANDOFF_PROTOCOL.md)
+- Shared context baseline: [.planning/CONTEXT_FOR_AGENTS.md](.planning/CONTEXT_FOR_AGENTS.md)
+- Operational runbook: [docs/INTEGRATION_COPILOT_CODEX.md](docs/INTEGRATION_COPILOT_CODEX.md)
+
+Recommended flow:
+
+1. Start from `.planning/STATE.md` and `.planning/decisions/DECISION_LOG.md`.
+2. Execute with Copilot for interactive planning/review.
+3. Hand off to Codex when orchestration or multi-wave execution is needed.
+4. Resume in Copilot using the saved checkpoint and Codex completion block.
 
 ## Governance Artifacts
 

@@ -5,7 +5,7 @@
 See: `.planning/PROJECT.md` (updated 2026-04-20)
 
 **Core value:** Documents must never be reported as safely processed unless extraction status, confidence, and policy checks support that conclusion.
-**Current focus:** Phase 6 service runtime hardening and decision-governance artifacts complete.
+**Current focus:** Phase 6 service runtime hardening complete; Copilot<->Codex continuity artifacts and integration gates added.
 
 ## Current Phase
 
@@ -42,3 +42,4 @@ See: `.planning/PROJECT.md` (updated 2026-04-20)
 - Maintain the 100 percent coverage and service-boundary gates as non-negotiable CI requirements.
 - Keep the decision ledger updated for every meaningful architectural or operational decision.
 - Replace deterministic generated fixture PDFs with curated real-world samples if the project can safely store non-sensitive documents.
+- Investigate ACL constraints on local temp folders (`.pytest-tmp`, `test-tmp`, `manual-tmp`, `.tmp`) because cleanup is currently blocked by filesystem permissions in this workstation profile.

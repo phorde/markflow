@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: markflow-api
+    runtime: docker
+    plan: free
+    repo: https://github.com/phorde/markflow.git
+    branch: main
+    dockerfilePath: ./services/api/Dockerfile
+    dockerContext: .
+    domains:
+      - api.phorde.com.br
+    healthCheckPath: /docs
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      - key: MARKFLOW_ALLOWED_ORIGINS
+        value: https://app.phorde.com.br
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: markflow-redis
+          property: connectionString
+
+  - type: web
+    name: markflow-worker
+    runtime: docker
+    plan: free
+    repo: https://github.com/phorde/markflow.git
+    branch: main
+    dockerfilePath: ./services/worker/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      - key: WORKER_HEALTH_HOST
+        value: 0.0.0.0
+      - key: WORKER_LOOP_SLEEP_SECONDS
+        value: "2.0"
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: markflow-redis
+          property: connectionString
+
+  - type: web
+    name: markflow-web
+    runtime: docker
+    plan: free
+    repo: https://github.com/phorde/markflow.git
+    branch: main
+    dockerfilePath: ./services/frontend/Dockerfile
+    dockerContext: .
+    domains:
+      - app.phorde.com.br
+    envVars:
+      - key: NEXT_PUBLIC_MARKFLOW_API_URL
+        value: https://api.phorde.com.br
+
+  - type: keyvalue
+    name: markflow-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []

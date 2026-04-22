@@ -217,6 +217,28 @@ def test_api_create_job_dispatches_without_persisting_api_key() -> None:
 
 
 @pytest.mark.unit
+def test_api_cors_allows_configured_production_origin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("MARKFLOW_ALLOWED_ORIGINS", "https://app.phorde.com.br")
+    store = JobStateStore()
+    dispatcher = CapturingDispatcher()
+    app = create_app(state_store=store, dispatcher=dispatcher)  # type: ignore[arg-type]
+    client = TestClient(app)
+
+    response = client.options(
+        "/api/jobs",
+        headers={
+            "Origin": "https://app.phorde.com.br",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://app.phorde.com.br"
+
+
+@pytest.mark.unit
 def test_api_get_job_and_internal_event_validation() -> None:
     store = JobStateStore()
     dispatcher = CapturingDispatcher()

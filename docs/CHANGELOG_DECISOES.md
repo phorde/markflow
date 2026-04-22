@@ -85,6 +85,13 @@ Este documento registra, com racional tecnico, as decisoes estruturais e operaci
 - Justificativa: o CI falhava no step `Mypy` nos jobs Python 3.10, 3.11 e 3.12 porque os stubs Linux nao expunham `subprocess.CREATE_NEW_PROCESS_GROUP` nem `ctypes.windll`, embora esses acessos estivessem protegidos por `os.name == "nt"`.
 - Impacto: `python -m mypy --platform linux markflow services scripts` passa localmente e o runner de timeout preserva comportamento robusto em Windows e POSIX.
 
+### Codex (deploy Render)
+
+- Decisao: preparar deploy via Render Blueprint com API, frontend e worker como servicos isolados e Redis Streams em Render Key Value.
+- Justificativa: o Render Blueprint mapeia diretamente os Dockerfiles existentes do monorepo e evita colapsar os limites `services/frontend`, `services/api` e `services/worker`.
+- Ajuste operacional: como a instancia Free do Render nao esta disponivel para background workers, o deploy gratuito inicial executa o worker como Web Service Docker com endpoint `/health`; o upgrade natural para producao e mudar esse servico para `type: worker` em plano pago.
+- Impacto: `render.yaml` passa a descrever `app.phorde.com.br`, `api.phorde.com.br`, worker isolado e Key Value Redis-compatible, com CORS configuravel via ambiente.
+
 ## Decisoes Estruturais
 
 1. API como autoridade de estado canonico.
@@ -93,6 +100,7 @@ Este documento registra, com racional tecnico, as decisoes estruturais e operaci
 4. Contratos Redis versionados (`v1`) como limite formal de compatibilidade.
 5. Check de fronteiras de servico como gate obrigatorio de CI.
 6. Comandos de qualidade propensos a travamento devem rodar com timeout explicito.
+7. Deploy gratuito inicial no Render usa worker como Web Service isolado; background worker nativo exige plano pago.
 
 ## Decisoes de Processo (GSD)
 

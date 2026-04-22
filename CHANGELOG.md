@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 ## [1.1.0] - 2026-04-20
 
+### Deployment Follow-up - 2026-04-22
+
+- Added Render Blueprint deployment configuration for isolated API, frontend, worker, and Key Value services.
+- Made production CORS configurable through `MARKFLOW_ALLOWED_ORIGINS`.
+- Updated Docker entrypoints to respect Render-provided `PORT` values for web services.
+- Documented the free-tier deployment constraint that Render background workers require a paid plan, so the zero-cost demo worker runs as an isolated web service with `/health`.
+
 ### CI Follow-up - 2026-04-21
 
 - Fixed Linux `mypy` failures in the Python 3.10/3.11/3.12 CI matrix by avoiding direct type-checked access to platform-specific runtime attributes (`subprocess.CREATE_NEW_PROCESS_GROUP`, `ctypes.windll`, `signal.SIGKILL`).

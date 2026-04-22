@@ -7,6 +7,7 @@ from collections.abc import Awaitable, AsyncGenerator
 from contextlib import asynccontextmanager, suppress
 from inspect import isawaitable
 import json
+import os
 from typing import Literal, Protocol
 from uuid import uuid4
 
@@ -79,6 +80,21 @@ class DispatcherProtocol(Protocol):
         """Dispatch a newly created job."""
 
 
+def _get_allowed_origins() -> list[str]:
+    defaults = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ]
+    configured = [
+        origin.strip()
+        for origin in os.getenv("MARKFLOW_ALLOWED_ORIGINS", "").split(",")
+        if origin.strip()
+    ]
+    return [*defaults, *configured]
+
+
 def create_app(
     state_store: JobStateStore | None = None,
     dispatcher: DispatcherProtocol | None = None,
@@ -143,15 +159,9 @@ def create_app(
 
     app = FastAPI(title="MarkFlow API", version="1.0.0-web-foundation", lifespan=lifespan)
 
-    allowed_origins = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=allowed_origins,
+        allow_origins=_get_allowed_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

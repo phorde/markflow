@@ -13,4 +13,4 @@ COPY services/__init__.py /app/services/__init__.py
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app/services/api"]
+CMD ["sh", "-c", "uvicorn app:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --app-dir /app/services/api"]

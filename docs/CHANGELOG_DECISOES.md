@@ -79,6 +79,12 @@ Este documento registra, com racional tecnico, as decisoes estruturais e operaci
 - Justificativa: `black 26.3.1` travou no Windows ao usar cache neste workspace; `--no-cache` passou imediatamente.
 - Impacto: travamentos passam a falhar com codigo `124` e mensagem clara, sem deixar processos Python filhos vivos.
 
+### Codex (correcao CI mypy Linux)
+
+- Decisao: acessar atributos especificos de plataforma via `getattr` em branches Windows/POSIX.
+- Justificativa: o CI falhava no step `Mypy` nos jobs Python 3.10, 3.11 e 3.12 porque os stubs Linux nao expunham `subprocess.CREATE_NEW_PROCESS_GROUP` nem `ctypes.windll`, embora esses acessos estivessem protegidos por `os.name == "nt"`.
+- Impacto: `python -m mypy --platform linux markflow services scripts` passa localmente e o runner de timeout preserva comportamento robusto em Windows e POSIX.
+
 ## Decisoes Estruturais
 
 1. API como autoridade de estado canonico.

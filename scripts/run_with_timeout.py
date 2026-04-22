@@ -41,9 +41,10 @@ def main() -> int:
     args = parse_args()
     command = resolve_command_executable([str(part) for part in args.command])
     if os.name == "nt":
+        creation_flags = int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0))
         process: subprocess.Popen[bytes] = subprocess.Popen(  # nosec B603
             command,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            creationflags=creation_flags,
         )
     else:
         process = subprocess.Popen(  # nosec B603
@@ -85,12 +86,13 @@ def terminate_process_tree(process: subprocess.Popen[bytes]) -> None:
             process.wait(timeout=5)
         return
 
+    kill_process_group(process.pid, int(signal.SIGTERM))
     try:
-        process.kill()
-    except ProcessLookupError:
-        return
-    kill_process_group(process.pid, signal.SIGTERM)
-    process.wait(timeout=5)
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:  # pragma: no cover - rare OS-level race
+        sigkill = int(getattr(signal, "SIGKILL", signal.SIGTERM))
+        kill_process_group(process.pid, sigkill)
+        process.wait(timeout=5)
 
 
 def kill_process_group(pid: int, sig: int) -> None:

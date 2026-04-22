@@ -4,6 +4,11 @@ All notable changes to this project are documented in this file.
 
 ## [1.1.0] - 2026-04-20
 
+### CI Follow-up - 2026-04-21
+
+- Fixed Linux `mypy` failures in the Python 3.10/3.11/3.12 CI matrix by avoiding direct type-checked access to platform-specific runtime attributes (`subprocess.CREATE_NEW_PROCESS_GROUP`, `ctypes.windll`, `signal.SIGKILL`).
+- Improved POSIX timeout cleanup in `scripts/run_with_timeout.py` by terminating the process group before escalating to a stronger signal.
+
 ### Added
 
 - Multi-service runtime structure under `services/frontend`, `services/api`, and `services/worker`.

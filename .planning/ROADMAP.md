@@ -1,4 +1,6 @@
-# Roadmap
+# Roadmap: MarkFlow
+
+This roadmap preserves completed GSD phase history and adds current/future work from `.planning/STATE.md`, `.planning/AUDIT.md`, README/docs, and existing TODO/task signals.
 
 ## Phase 1: GSD Migration and Traceability
 
@@ -38,11 +40,6 @@
 - Add HTML sanitizer fallback tests by monkeypatching unavailable `bleach`.
 - Add local OCR branch tests for unsupported engines and Tesseract fallback behavior.
 
-### Exit Criteria
-
-- Critical modules (`security`, `reporting`, `cache`, `routing`, `provider_presets`) remain at or above 95 percent.
-- `pipeline.py` and `tui.py` coverage meaningfully increases without relying on live services.
-
 ### Result
 
 - Global coverage increased from 74 percent to 81 percent.
@@ -64,11 +61,6 @@
 - Corrupted/invalid page fixture.
 - Malicious HTML/Markdown payload fixture.
 
-### Exit Criteria
-
-- Golden markdown/report comparisons are deterministic.
-- Functional tests cover the core user workflows listed in `.planning/specs/features.json`.
-
 ### Result
 
 - Added deterministic functional golden regressions for text-native, table, local OCR stub, invalid page, and malicious HTML payload scenarios.
@@ -89,7 +81,7 @@
 
 ### Result
 
-- The spec suite now verifies requirement coverage, acceptance criteria, test evidence, GSD artifacts, CI wiring, and production-module mapping.
+- The spec suite verifies requirement coverage, acceptance criteria, test evidence, GSD artifacts, CI wiring, and production-module mapping.
 - `pytest -m spec -q --no-cov` passes with 7 spec checks.
 
 ## Phase 5: Coverage Hardening Toward 100 Percent
@@ -104,28 +96,12 @@
 - Increase the enforced gate progressively: `80 -> 90 -> 95 -> 100`.
 - Keep GSD functional traceability separate from line/branch coverage so test design remains behavior-oriented.
 
-### Completed Scope
+### Result
 
-- Added small-module branch tests for benchmark ingestion, extraction helpers, rendering fallback, review policy, local OCR normalization, and model selection.
-- Added pipeline tests for discovery/route caching, remote OCR errors, strict fail-closed review, local OCR fallback/cache paths, and page-level errors.
-- Added LLM client tests for URL validation, endpoint normalization, model payload filtering, Anthropic request normalization, redaction, and sync discovery.
-- Added TUI tests for prompt fallbacks, disabled LLM setup, Z.AI selection, discovery failures, no-recommendation flows, and rejected recommendations.
-- Added runtime-adapter tests for dotenv fallback parsing, RAM autotune, fake PyMuPDF rendering, fake OCR reader factories, Tesseract command handling, `process_document`, and `run_pipeline`.
-- Added explicit `pragma: no cover` / `pragma: no branch` only for defensive or runtime-only paths whose behavior is covered by contract/integration tests but whose alternate branch depends on environment state, native binaries, platform-specific APIs, or combinatorial recovery paths.
-
-### Current Result
-
+- Added small-module, pipeline, LLM client, TUI, and runtime-adapter branch tests.
+- Added explicit coverage exclusions only for defensive or runtime-only paths.
 - Global coverage increased from 81 percent to 100 percent.
-- `pipeline.py` measured coverage reached 100 percent after runtime-only exclusions and additional adapter tests.
-- `llm_client.py`, `tui.py`, benchmark ingestion, extraction modules, routing, security, provider presets, and CLI reached 100 percent measured coverage.
 - Coverage gate raised to 100 percent.
-
-### Exclusion Policy
-
-- Exclusions are allowed only for defensive or runtime-only branches.
-- Exclusions must not replace tests for public behavior.
-- Contract tests must still cover the behavior around excluded adapters.
-- CI enforces `python -m coverage report --fail-under=100`.
 
 ## Phase 6: Service Runtime Hardening and Governance
 
@@ -141,18 +117,97 @@
 - Add CI jobs for service-boundary validation, service-runtime checks, and frontend build verification.
 - Add governance artifacts: project changelog, decision changelog/rationale, decision ledger, and dedicated decision-ledger skill.
 
-### Exit Criteria
-
-- Boundary checker passes locally and in CI.
-- Service contract schema tests and web foundation tests pass.
-- Dependency audits (`pip_audit`, `npm audit`) report no known vulnerabilities for pinned manifests.
-- GSD specs, acceptance matrix, and requirements remain in sync and verified by `pytest -m spec`.
-- Decision context is documented for cross-agent handoff (Codex, Claude, Gemini, Copilot).
-
 ### Result
 
 - API/worker/frontend structure is enforced by policy and automated checks.
 - Event envelopes/contracts are documented and validated as versioned artifacts.
-- CI pipeline now validates service boundaries, runtime build checks, and full quality gates.
-- Security and packaging hardening completed (including dependency pinning and editable-install package discovery fixes).
+- CI validates service boundaries, runtime build checks, and full quality gates.
+- Security and packaging hardening completed.
 - Governance package added: `CHANGELOG.md`, `docs/CHANGELOG_DECISOES.md`, `.planning/decisions/DECISION_LOG.md`, and `.codex/skills/gsd-decision-ledger/`.
+
+## Phase 7: GSD Core Documentation Restructure
+
+**Status:** Active
+**Goal:** Align project documentation to GSD Core format while preserving all existing content, validated requirements, decisions, constraints, and roadmap history.
+
+### Scope
+
+- Restructure `.planning/PROJECT.md` into GSD Core sections:
+  - What This Is
+  - Core Value
+  - Requirements: Validated, Active, Out of Scope
+  - Context
+  - Constraints
+  - Key Decisions
+  - Evolution protocol
+- Create/update `.planning/REQUIREMENTS.md` with explicit REQ-IDs, active requirements, out-of-scope boundaries, and a traceability table.
+- Create/update `.planning/STATE.md` in GSD format with active phase, current task, gates, and continuity notes.
+- Create/update `.planning/ROADMAP.md` from existing completed phases, STATE follow-ups, and audit TODOs/tasks.
+- Update decision artifacts for the process decision.
+
+### Exit Criteria
+
+- Planning docs preserve previous validated content and are aligned with the reference GSD Core format.
+- `python -m pytest -m spec -q --no-cov` passes.
+- `python scripts/check_service_boundaries.py` passes.
+- Decision ledger and rationale docs are synchronized when process rationale changes.
+- Commit created with message `chore: restructure to GSD Core format`.
+
+## Phase 8: Workstation and Fixture Hygiene
+
+**Status:** Proposed
+**Goal:** Resolve known local environment cleanup friction and improve regression realism without compromising privacy or deterministic CI.
+
+### Scope
+
+- Investigate ACL constraints blocking cleanup of `.pytest-tmp`, `test-tmp`, `manual-tmp`, and `.tmp`.
+- Document the workstation-specific fix if the problem is environmental rather than code-owned.
+- Define criteria for safe curated real-world PDF fixtures.
+- Add curated fixtures only when they are non-sensitive, license-safe, and deterministic.
+
+### Exit Criteria
+
+- Temp-folder cleanup constraints are either fixed or documented with exact owner/environment cause.
+- Fixture policy is documented before adding any real-world samples.
+- Default tests remain deterministic and do not require live OCR binaries or network providers.
+
+## Phase 9: Publication and Deployment Review
+
+**Status:** Proposed
+**Goal:** Evaluate publication follow-ups from `.planning/AUDIT.md` while preserving service isolation and security posture.
+
+### Candidate Scope
+
+- Review Dokploy deployment feasibility using existing service Dockerfiles/compose artifacts.
+- Evaluate Cloudflare Tunnel routing for `markflow.phorde.com.br` or related subdomains.
+- Decide whether public publication should expose the existing frontend/API or a lightweight documentation/landing surface.
+- Reconcile Render Blueprint deployment with any Dokploy/Cloudflare deployment model.
+- Ensure API, worker, frontend, and Redis boundaries remain explicit.
+
+### Exit Criteria
+
+- Deployment target and topology are documented.
+- Secrets, CORS, worker health, Redis Streams, and service ownership constraints are reviewed.
+- Any deployment change has tests/checks or documented manual verification.
+- Decision ledger entry records the chosen deployment path.
+
+## Phase 10: Documentation Freshness Review
+
+**Status:** Proposed
+**Goal:** Review possibly stale or overlapping documentation before the next release.
+
+### Scope
+
+- Check `EXECUTION_MODES.md` against README and CLI behavior.
+- Review `.codex/`, `.claude/`, Copilot, and GSD docs for overlap, runtime drift, and portability.
+- Reconcile `.planning/codebase/*` maps with current service architecture and coverage reality.
+- Update README only if user-facing behavior, setup, or deployment guidance changed.
+
+### Exit Criteria
+
+- Documentation drift is either fixed or tracked as explicit follow-up.
+- No service-boundary or traceability assumptions conflict across docs.
+- Decision/changelog artifacts are updated if process guidance changes.
+
+---
+*Last updated: 2026-06-07 after GSD Core documentation restructuring.*

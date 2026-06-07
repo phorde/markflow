@@ -92,6 +92,13 @@ Este documento registra, com racional tecnico, as decisoes estruturais e operaci
 - Ajuste operacional: como a instancia Free do Render nao esta disponivel para background workers, o deploy gratuito inicial executa o worker como Web Service Docker com endpoint `/health`; o upgrade natural para producao e mudar esse servico para `type: worker` em plano pago.
 - Impacto: `render.yaml` passa a descrever `app.phorde.com.br`, `api.phorde.com.br`, worker isolado e Key Value Redis-compatible, com CORS configuravel via ambiente.
 
+### Codex (reestruturacao GSD Core)
+
+- Decisao: reestruturar `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md` e `.planning/ROADMAP.md` para o formato GSD Core.
+- Justificativa: alinhar o projeto ao formato de referencia atual sem perder conteudo validado, historico de fases, restricoes de servico, rastreabilidade v1 e backlog levantado em auditoria.
+- Ajuste operacional: `.planning/REQUIREMENTS.md` preserva os anchors `## v1 Requirements` e `## v2 Requirements`, alem dos REQ-IDs em negrito, porque os testes de spec ainda usam esse contrato textual para validar `.planning/specs/features.json`.
+- Impacto: os documentos de planejamento ficam mais navegaveis para agentes e continuam compativeis com os gates `pytest -m spec` e `scripts/check_service_boundaries.py`.
+
 ## Decisoes Estruturais
 
 1. API como autoridade de estado canonico.
@@ -108,6 +115,7 @@ Este documento registra, com racional tecnico, as decisoes estruturais e operaci
 2. Cada requisito v1 deve ter secao de aceitacao em `.planning/specs/feature_acceptance_matrix.md`.
 3. Mudancas arquiteturais devem entrar no ledger de decisoes e no changelog.
 4. Nova skill dedicada para manter historico por agente e justificativas auditaveis.
+5. Documentos GSD Core devem preservar os anchors textuais usados pelos testes de rastreabilidade ate que o parser seja evoluido.
 
 ## Evidencias Tecnicas
 

@@ -34,6 +34,23 @@ web = [
   "starlette==0.52.1",
   "uvicorn==0.35.0",
 ]
+core = [
+  "aiohttp==3.13.5",
+  "bleach==6.2.0",
+  "easyocr==1.7.2",
+  "markdown==3.8.2",
+  "numpy==2.2.6",
+  "onnxruntime==1.22.1",
+  "Pillow==12.2.0",
+  "psutil==7.0.0",
+  "questionary==2.1.1",
+  "PyMuPDF==1.26.1",
+  "pytesseract==0.3.13",
+  "python-dotenv==1.1.1",
+  "rapidocr-onnxruntime==1.4.4",
+  "rich==14.0.0",
+  "tqdm==4.67.1",
+]
 dev = [
   "black==26.3.1",
   "coverage[toml]==7.10.6",
@@ -100,6 +117,10 @@ no_implicit_optional = true
 check_untyped_defs = true
 ignore_missing_imports = true
 allow_redefinition = true
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [tool.flake8]
 max-line-length = 100

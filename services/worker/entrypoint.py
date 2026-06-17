@@ -35,7 +35,8 @@ class _HealthHandler(BaseHTTPRequestHandler):
 
 def _run_health_server() -> None:
     host = os.getenv("WORKER_HEALTH_HOST", "127.0.0.1")
-    port = int(os.getenv("WORKER_HEALTH_PORT") or os.getenv("PORT", "8001"))
+    port_str = os.getenv("WORKER_HEALTH_PORT") or os.getenv("PORT", "8001")
+    port = int(port_str or "8001")
     server = ThreadingHTTPServer((host, port), _HealthHandler)
     server.serve_forever()
 
